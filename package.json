@@ -49,6 +49,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/gzhang33/codex-pet.git"
   }
 }

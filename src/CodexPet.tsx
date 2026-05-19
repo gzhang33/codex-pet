@@ -81,7 +81,9 @@ const CodexPet: React.FC<CodexPetProps> = ({
 
   // React state (triggers re-render)
   const [position, setPosition] = useState<Position | null>(null);
-  const [isCompact, setIsCompact] = useState(() => window.innerWidth < mobileBreakpoint);
+  const [isCompact, setIsCompact] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < mobileBreakpoint
+  );
 
   // Imperative state (no re-render)
   const stateRef = useRef<PetInternalState>({
@@ -117,7 +119,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
   const lastAutoActionAtRef = useRef(0);
   const positionRef = useRef<Position | null>(null);
   const positionRatioRef = useRef<PetRatio | null>(null);
-  const isCompactRef = useRef(window.innerWidth < mobileBreakpoint);
+  const isCompactRef = useRef(typeof window !== 'undefined' && window.innerWidth < mobileBreakpoint);
 
   // Drag refs
   const dragPointerIdRef = useRef<number | null>(null);
