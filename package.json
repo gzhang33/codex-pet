@@ -1,0 +1,54 @@
+{
+  "name": "codex-pet",
+  "version": "0.1.0",
+  "description": "Interactive spritesheet pet component for React — state machine, drag physics, scroll reaction, section awareness, zero re-renders.",
+  "type": "module",
+  "main": "dist/codex-pet.cjs",
+  "module": "dist/codex-pet.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/codex-pet.js",
+      "require": "./dist/codex-pet.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "~5.8.0",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.5.0"
+  },
+  "keywords": [
+    "react",
+    "pet",
+    "mascot",
+    "spritesheet",
+    "animation",
+    "interactive",
+    "drag",
+    "state-machine"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
