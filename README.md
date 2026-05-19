@@ -7,8 +7,12 @@
 
 <p align="center">
   <a href="https://github.com/gzhang33/codex-pet/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="gzip size" src="https://img.shields.io/badge/gzip-6.4%20kB-44cc11.svg">
+  <img alt="gzip size" src="https://img.shields.io/badge/gzip-6.2%20kB-44cc11.svg">
   <img alt="react" src="https://img.shields.io/badge/react-%E2%89%A518-61dafb.svg">
+</p>
+
+<p align="center">
+  <img src="docs/example.gif" alt="CodexPet demo — idle, dragging, scrolling, section reactions" width="600">
 </p>
 
 <br>
@@ -58,14 +62,14 @@ function App() {
 }
 ```
 
-Zero props works out of the box. Just provide your own spritesheet image at the default path, or pass `spritesheetSrc`.
+Zero props works out of the box. Pass `sections`, `sectionReactions`, and `sectionStyles` to enable section-aware behavior.
 
 ## Configuration
 
 ```tsx
 import CodexPet, {
   DEFAULT_STATE_CONFIG,
-  DEFAULT_SECTION_REACTIONS,
+  NEUTRAL_SECTION_STYLE,
 } from 'codex-pet';
 
 <CodexPet
@@ -73,7 +77,7 @@ import CodexPet, {
   atlas={{ columns: 8, cellWidth: 192, cellHeight: 208 }}
   desktopSpriteWidth={150}
   mobileSpriteWidth={116}
-  sections={[{ id: 'about' }, { id: 'projects' }]}
+  sections={[{ id: 'hero' }, { id: 'about' }, { id: 'projects' }]}
   sectionReactions={{ hero: 'waving', about: 'waiting', projects: 'review' }}
   sectionStyles={{
     hero: {
@@ -95,11 +99,11 @@ import CodexPet, {
 | `spritesheetSrc` | `string` | `'/pets/paris-muse.webp'` | Spritesheet image URL |
 | `atlas` | `AtlasConfig` | `{ columns:8, cellWidth:192, cellHeight:208 }` | Atlas grid layout |
 | `stateConfig` | `Record<PetState, StateConfig>` | _(9 states)_ | Per-state animation config |
-| `sections` | `SectionDescriptor[]` | `[{id:'about'},...]` | DOM sections to detect by id |
-| `sectionReactions` | `Record<string, PetState>` | `{hero:'waving',...}` | State to play per section |
-| `sectionStyles` | `Record<string, SectionStyle>` | _(color per section)_ | Shadow, glow, trail per section |
-| `interactiveSelector` | `string` | `'a, button, ...'` | CSS selector for interactive surfaces |
-| `reviewSelector` | `string \| null` | `'#projects'` | Review-zone selector; null to disable |
+| `sections` | `SectionDescriptor[]` | `[]` | DOM sections to detect by id |
+| `sectionReactions` | `Record<string, PetState>` | `{}` | State to play per section |
+| `sectionStyles` | `Record<string, SectionStyle>` | `{}` | Shadow, glow, trail per section |
+| `interactiveSelector` | `string` | `'a, button, [role="button"], input, textarea, select, [data-pet-react]'` | CSS selector for interactive surfaces |
+| `reviewSelector` | `string \| null` | `null` | Review-zone selector; null to disable |
 | `desktopSpriteWidth` | `number` | `150` | Sprite width on desktop (px) |
 | `mobileSpriteWidth` | `number` | `116` | Sprite width on mobile (px) |
 | `mobileBreakpoint` | `number` | `768` | Viewport width breakpoint |
@@ -159,14 +163,14 @@ import CodexPet from 'codex-pet';
 import type { PetState, PetHookName, CodexPetProps, AtlasConfig, ... } from 'codex-pet';
 
 // Defaults (for partial override)
-import { DEFAULT_STATE_CONFIG, DEFAULT_SECTION_REACTIONS, ... } from 'codex-pet';
+import { DEFAULT_STATE_CONFIG, NEUTRAL_SECTION_STYLE, ACTIVE_RETURN_MS, ... } from 'codex-pet';
 ```
 
 ## Comparison
 
 | | codex-pet | oneko.js | live2d-widget | clippy.js |
 |---|---|---|---|---|
-| Size (gzip) | **6.4 KB** | ~7 KB | ~2.25 MB | ~30 KB |
+| Size (gzip) | **6.2 KB** | ~7 KB | ~2.25 MB | ~30 KB |
 | React | Native | Vanilla JS | Vanilla JS | jQuery |
 | States | **9** | 4 | N/A | ~10 |
 | Drag physics | Yes | No | Yes | No |

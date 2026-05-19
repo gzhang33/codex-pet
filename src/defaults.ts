@@ -41,7 +41,7 @@ export const TEXT_SELECTION_MIN_LENGTH = 12;
 
 // --- Interaction ---
 export const DEFAULT_INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, textarea, select, [data-pet-react]';
-export const DEFAULT_REVIEW_SELECTOR = '#projects';
+export const DEFAULT_REVIEW_SELECTOR: string | null = null;
 
 // --- State config ---
 export const DEFAULT_STATE_CONFIG: Record<PetState, StateConfig> = {
@@ -67,41 +67,16 @@ export const ACTIVE_RETURN_MS: Partial<Record<PetState, number>> = {
   review: 3200,
 };
 
-// --- Section defaults ---
-export const DEFAULT_SECTIONS: SectionDescriptor[] = [
-  { id: 'about' },
-  { id: 'projects' },
-  { id: 'contact' },
-];
+// --- Section defaults (empty — configure via props) ---
+export const DEFAULT_SECTIONS: SectionDescriptor[] = [];
+export const DEFAULT_SECTION_REACTIONS: Record<string, PetState> = {};
+export const DEFAULT_SECTION_STYLE: Record<string, SectionStyle> = {};
 
-export const DEFAULT_SECTION_REACTIONS: Record<string, PetState> = {
-  hero: 'waving',
-  about: 'waiting',
-  projects: 'review',
-  contact: 'waving',
-};
-
-export const DEFAULT_SECTION_STYLE: Record<string, SectionStyle> = {
-  hero: {
-    shadow: 'radial-gradient(ellipse, rgba(16, 185, 129, 0.38), rgba(15, 23, 42, 0.08) 68%)',
-    glow: 'drop-shadow(0 0 18px rgba(16, 185, 129, 0.25))',
-    trail: 'linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.34))',
-  },
-  about: {
-    shadow: 'radial-gradient(ellipse, rgba(56, 189, 248, 0.30), rgba(15, 23, 42, 0.08) 68%)',
-    glow: 'drop-shadow(0 0 18px rgba(56, 189, 248, 0.20))',
-    trail: 'linear-gradient(90deg, rgba(56, 189, 248, 0), rgba(56, 189, 248, 0.30))',
-  },
-  projects: {
-    shadow: 'radial-gradient(ellipse, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.08) 68%)',
-    glow: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.22))',
-    trail: 'linear-gradient(90deg, rgba(168, 85, 247, 0), rgba(168, 85, 247, 0.32))',
-  },
-  contact: {
-    shadow: 'radial-gradient(ellipse, rgba(250, 204, 21, 0.24), rgba(15, 23, 42, 0.08) 68%)',
-    glow: 'drop-shadow(0 0 18px rgba(250, 204, 21, 0.18))',
-    trail: 'linear-gradient(90deg, rgba(250, 204, 21, 0), rgba(250, 204, 21, 0.28))',
-  },
+/** Neutral fallback style when no section style is configured. */
+export const NEUTRAL_SECTION_STYLE: SectionStyle = {
+  shadow: 'radial-gradient(ellipse, rgba(0, 0, 0, 0.18), transparent 68%)',
+  glow: 'drop-shadow(0 0 12px rgba(0, 0, 0, 0.12))',
+  trail: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18))',
 };
 
 // --- Hook mapping ---

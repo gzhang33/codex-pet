@@ -45,6 +45,7 @@ import {
   DEFAULT_SECTIONS,
   DEFAULT_SECTION_REACTIONS,
   DEFAULT_SECTION_STYLE,
+  NEUTRAL_SECTION_STYLE,
   PET_STATE_HOOKS,
 } from './defaults';
 
@@ -91,7 +92,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
     isDragging: false,
     isEngaged: false,
     dragVector: { x: 0, y: 0 },
-    activeSection: 'hero',
+    activeSection: '',
     isScrollReacting: false,
   });
 
@@ -222,24 +223,23 @@ const CodexPet: React.FC<CodexPetProps> = ({
     container.dataset.petScrollReacting = s.isScrollReacting ? 'true' : 'false';
 
     // Cursor
-    container.className = container.className.replace(/cursor-grab\w*/g, '');
-    container.classList.add(s.isDragging ? 'cursor-grabbing' : 'cursor-grab');
+    container.style.cursor = s.isDragging ? 'grabbing' : 'grab';
 
     // Section style
-    const sectionStyle = sectionStyles[s.activeSection] ?? sectionStyles['hero'] ?? DEFAULT_SECTION_STYLE['hero'];
+    const sectionStyle = sectionStyles[s.activeSection] ?? NEUTRAL_SECTION_STYLE;
 
-    // Sprite class (scale + opacity)
+    // Sprite scale + opacity
     const isCompactMode = isCompactRef.current;
-    let spriteClass: string;
+    let scale: number, opacity: number;
     if (isCompactMode) {
-      spriteClass = s.isDragging ? 'scale-[1.05] opacity-100' : s.isEngaged ? 'scale-100 opacity-100' : 'scale-[0.94] opacity-78';
+      scale = s.isDragging ? 1.05 : s.isEngaged ? 1 : 0.94;
+      opacity = s.isDragging ? 1 : s.isEngaged ? 1 : 0.78;
     } else {
-      spriteClass = s.isDragging ? 'scale-[1.08] opacity-100' : s.isEngaged ? 'scale-[1.03] opacity-100' : 'scale-100 opacity-100';
+      scale = s.isDragging ? 1.08 : s.isEngaged ? 1.03 : 1;
+      opacity = 1;
     }
-
-    // Update sprite classes
-    sprite.className = sprite.className.replace(/scale-\[[\d.]+\]|opacity-\d+|scale-100/g, '').trim();
-    spriteClass.split(' ').filter(Boolean).forEach(c => sprite.classList.add(c));
+    sprite.style.transform = `scale(${scale})`;
+    sprite.style.opacity = `${opacity}`;
 
     // Sprite background position
     const cfg = stateConfig[s.petState];
@@ -252,7 +252,8 @@ const CodexPet: React.FC<CodexPetProps> = ({
       && s.dragVector.y <= -FLOATING_DRAG_THRESHOLD
       && Math.abs(s.dragVector.y) >= Math.abs(s.dragVector.x) * 0.65;
     const floatingLift = isFloating ? Math.min(18, Math.max(8, Math.abs(s.dragVector.y) * 0.12)) : 0;
-    sprite.style.transform = isFloating ? `translateY(-${floatingLift}px)` : '';
+    const baseTranslateY = isFloating ? -floatingLift : 0;
+    sprite.style.transform = baseTranslateY ? `translateY(${baseTranslateY}px) scale(${scale})` : `scale(${scale})`;
 
     // will-change during drag
     sprite.style.willChange = s.isDragging ? 'transform' : 'auto';
@@ -261,16 +262,16 @@ const CodexPet: React.FC<CodexPetProps> = ({
     let dropShadow: string;
     if (isCompactMode) {
       dropShadow = isFloating
-        ? 'drop-shadow(0 24px 32px rgba(15, 23, 42, 0.32))'
+        ? 'drop-shadow(0 24px 32px rgba(0, 0, 0, 0.32))'
         : s.isDragging
-          ? 'drop-shadow(0 18px 26px rgba(15, 23, 42, 0.52))'
-          : 'drop-shadow(0 10px 18px rgba(15, 23, 42, 0.42))';
+          ? 'drop-shadow(0 18px 26px rgba(0, 0, 0, 0.52))'
+          : 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.42))';
     } else {
       dropShadow = isFloating
-        ? 'drop-shadow(0 28px 42px rgba(15, 23, 42, 0.34))'
+        ? 'drop-shadow(0 28px 42px rgba(0, 0, 0, 0.34))'
         : s.isDragging
-          ? 'drop-shadow(0 18px 26px rgba(15, 23, 42, 0.52))'
-          : 'drop-shadow(0 14px 26px rgba(15, 23, 42, 0.5))';
+          ? 'drop-shadow(0 18px 26px rgba(0, 0, 0, 0.52))'
+          : 'drop-shadow(0 14px 26px rgba(0, 0, 0, 0.5))';
     }
     sprite.style.filter = `${dropShadow} ${sectionStyle.glow}`;
 
@@ -280,26 +281,29 @@ const CodexPet: React.FC<CodexPetProps> = ({
       trail.style.display = isRunning ? '' : 'none';
       if (isRunning) {
         trail.style.background = sectionStyle.trail;
-        trail.className = trail.className.replace(/opacity-\d+/g, '').trim();
-        trail.classList.add(s.isScrollReacting ? 'opacity-80' : 'opacity-50');
-        const trailDir = s.petState === 'running-left' ? 'left-[58%] rotate-180' : 'right-[58%]';
-        trail.classList.remove('left-[58%]', 'rotate-180', 'right-[58%]');
-        trailDir.split(' ').forEach(c => trail.classList.add(c));
+        trail.style.opacity = s.isScrollReacting ? '0.8' : '0.5';
+        const isLeft = s.petState === 'running-left';
+        trail.style.left = isLeft ? '58%' : '';
+        trail.style.right = isLeft ? '' : '58%';
+        trail.style.transform = isLeft ? 'rotate(180deg)' : '';
       }
     }
 
     // Shadow
     if (shadow) {
       shadow.style.background = sectionStyle.shadow;
-      shadow.className = shadow.className
-        .replace(/scale-\d+|scale-\[[\d.]+\]|opacity-\d+|blur-\w+/g, '')
-        .trim();
       if (isFloating) {
-        'scale-75 opacity-35 blur-xl'.split(' ').forEach(c => shadow.classList.add(c));
+        shadow.style.transform = 'translateX(-50%) scale(0.75)';
+        shadow.style.opacity = '0.35';
+        shadow.style.filter = 'blur(24px)';
       } else if (s.isDragging) {
-        'scale-110 opacity-85 blur-lg'.split(' ').forEach(c => shadow.classList.add(c));
+        shadow.style.transform = 'translateX(-50%) scale(1.1)';
+        shadow.style.opacity = '0.85';
+        shadow.style.filter = 'blur(16px)';
       } else {
-        'scale-100 opacity-55 blur-md'.split(' ').forEach(c => shadow.classList.add(c));
+        shadow.style.transform = 'translateX(-50%) scale(1)';
+        shadow.style.opacity = '0.55';
+        shadow.style.filter = 'blur(12px)';
       }
     }
   }, [stateConfig, sectionStyles, scaledCellWidth, scaledCellHeight]);
@@ -607,7 +611,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
         element: document.getElementById(s.id),
       }));
 
-      let nextSection = 'hero';
+      let nextSection = '';
       for (const section of sectionElements) {
         if (!section.element) continue;
         const rect = section.element.getBoundingClientRect();
@@ -902,50 +906,84 @@ const CodexPet: React.FC<CodexPetProps> = ({
   // --- Render ---
   if (position === null) return null;
 
-  const sectionStyle = sectionStyles[stateRef.current.activeSection] ?? sectionStyles['hero'] ?? DEFAULT_SECTION_STYLE['hero'];
+  const sectionStyle = sectionStyles[stateRef.current.activeSection] ?? NEUTRAL_SECTION_STYLE;
 
   return (
     <button
       ref={containerRef}
       type="button"
       onMouseEnter={handleHover}
-      onFocus={handleHover}
+      onFocus={(e) => {
+        handleHover();
+        e.currentTarget.style.borderRadius = '12px';
+        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.55)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.boxShadow = '';
+      }}
       onTouchStart={() => { stateRef.current.isEngaged = true; commitDOM(); }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      className="fixed z-30 appearance-none border-0 bg-transparent p-0 select-none touch-none focus:outline-none focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-emerald-300/55 cursor-grab"
+      className="fixed z-30 appearance-none border-0 bg-transparent p-0 select-none touch-none"
       aria-label={ariaLabel}
       data-pet-state="idle"
       data-pet-hook="default"
-      data-pet-section="hero"
+      data-pet-section=""
       data-pet-scroll-reacting="false"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
+        cursor: 'grab',
+        outline: 'none',
         contain: 'layout style paint',
       }}
     >
       <div
         ref={trailRef}
-        className="pointer-events-none absolute top-[42%] -z-10 h-9 w-24 rounded-full blur-md transition duration-150 opacity-50"
-        style={{ display: 'none', background: sectionStyle.trail }}
+        className="pet-trail"
+        style={{
+          position: 'absolute',
+          top: '42%',
+          zIndex: -1,
+          width: '96px',
+          height: '36px',
+          borderRadius: '9999px',
+          filter: 'blur(12px)',
+          pointerEvents: 'none',
+          display: 'none',
+          background: sectionStyle.trail,
+        }}
       />
       <div
         ref={shadowRef}
-        className="pointer-events-none absolute left-1/2 top-[78%] -z-10 h-5 w-[68%] -translate-x-1/2 rounded-full blur-md scale-100 opacity-55"
-        style={{ background: sectionStyle.shadow }}
+        className="pet-shadow"
+        style={{
+          position: 'absolute',
+          left: '16%',
+          top: '78%',
+          zIndex: -1,
+          width: '68%',
+          height: '20px',
+          borderRadius: '9999px',
+          filter: 'blur(12px)',
+          pointerEvents: 'none',
+          transform: 'translateX(-50%)',
+          background: sectionStyle.shadow,
+        }}
       />
       <div
         ref={spriteRef}
-        className="pointer-events-none bg-no-repeat transition duration-200 scale-100 opacity-100"
         style={{
+          pointerEvents: 'none',
+          backgroundRepeat: 'no-repeat',
+          transition: 'transform 200ms ease, opacity 200ms ease',
           width: `${spriteWidth}px`,
           height: `${spriteHeight}px`,
           backgroundImage: `url(${spritesheetSrc})`,
           backgroundSize: `${scaledAtlasWidth}px auto`,
-          backgroundPosition: `0px 0px`,
+          backgroundPosition: '0px 0px',
           imageRendering: 'auto',
         }}
       />
