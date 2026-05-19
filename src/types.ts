@@ -46,6 +46,13 @@ export interface AtlasConfig {
   cellHeight: number;
 }
 
+export interface ViewportCrop {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 export interface SectionDescriptor {
   id: string;
 }
@@ -71,6 +78,8 @@ export interface CodexPetProps {
   spritesheetSrc?: string;
   /** Atlas grid layout */
   atlas?: AtlasConfig;
+  /** Visible crop area inside each atlas cell; omit to auto-trim transparent padding when possible */
+  viewportCrop?: ViewportCrop | null;
   /** Per-state animation config (row, frames, fps) */
   stateConfig?: Record<PetState, StateConfig>;
 

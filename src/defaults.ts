@@ -1,8 +1,9 @@
-import type { PetState, PetHookName, StateConfig, AtlasConfig, SectionDescriptor, SectionStyle, Position } from './types';
+import type { PetState, PetHookName, StateConfig, AtlasConfig, SectionDescriptor, SectionStyle, Position, ViewportCrop } from './types';
 
 // --- Asset ---
 export const DEFAULT_SPRITESHEET_SRC = '/pets/paris-muse.webp';
 export const DEFAULT_ATLAS: AtlasConfig = { columns: 8, cellWidth: 192, cellHeight: 208 };
+export const DEFAULT_VIEWPORT_CROP: ViewportCrop | null = null;
 
 // --- Sizing ---
 export const DESKTOP_SPRITE_WIDTH = 150;

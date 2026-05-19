@@ -15,6 +15,7 @@ import type {
 import {
   DEFAULT_SPRITESHEET_SRC,
   DEFAULT_ATLAS,
+  DEFAULT_VIEWPORT_CROP,
   DESKTOP_SPRITE_WIDTH,
   MOBILE_SPRITE_WIDTH,
   MOBILE_BREAKPOINT,
@@ -49,9 +50,119 @@ import {
   PET_STATE_HOOKS,
 } from './defaults';
 
+const createFullCellCrop = (
+  atlas: { cellWidth: number; cellHeight: number },
+): { left: number; top: number; width: number; height: number } => ({
+  left: 0,
+  top: 0,
+  width: atlas.cellWidth,
+  height: atlas.cellHeight,
+});
+
+const normalizeViewportCrop = (
+  crop: { left: number; top: number; width: number; height: number } | null | undefined,
+  atlas: { cellWidth: number; cellHeight: number },
+) => {
+  if (!crop) return createFullCellCrop(atlas);
+
+  const left = Math.max(0, Math.min(atlas.cellWidth - 1, Math.round(crop.left)));
+  const top = Math.max(0, Math.min(atlas.cellHeight - 1, Math.round(crop.top)));
+  const width = Math.max(1, Math.min(atlas.cellWidth - left, Math.round(crop.width)));
+  const height = Math.max(1, Math.min(atlas.cellHeight - top, Math.round(crop.height)));
+
+  return { left, top, width, height };
+};
+
+const cropsEqual = (
+  a: { left: number; top: number; width: number; height: number },
+  b: { left: number; top: number; width: number; height: number },
+) => a.left === b.left && a.top === b.top && a.width === b.width && a.height === b.height;
+
+const inferViewportCrop = async (
+  spritesheetSrc: string,
+  atlas: { cellWidth: number; cellHeight: number },
+  stateConfig: Record<string, { row: number; frames: number }>,
+) => {
+  if (typeof window === 'undefined') return null;
+
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error(`Failed to load spritesheet: ${spritesheetSrc}`));
+    image.src = spritesheetSrc;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) return null;
+
+  context.drawImage(image, 0, 0);
+
+  let imageData: ImageData;
+  try {
+    imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  } catch {
+    return null;
+  }
+
+  const { data, width: imageWidth } = imageData;
+  let minLeft = atlas.cellWidth;
+  let minTop = atlas.cellHeight;
+  let maxRight = 0;
+  let maxBottom = 0;
+  let foundOpaquePixel = false;
+
+  for (const cfg of Object.values(stateConfig)) {
+    for (let frame = 0; frame < cfg.frames; frame += 1) {
+      const offsetX = frame * atlas.cellWidth;
+      const offsetY = cfg.row * atlas.cellHeight;
+      let cellMinX = atlas.cellWidth;
+      let cellMinY = atlas.cellHeight;
+      let cellMaxX = -1;
+      let cellMaxY = -1;
+
+      for (let y = 0; y < atlas.cellHeight; y += 1) {
+        for (let x = 0; x < atlas.cellWidth; x += 1) {
+          const alphaIndex = ((offsetY + y) * imageWidth + (offsetX + x)) * 4 + 3;
+          if (data[alphaIndex] === 0) continue;
+          if (x < cellMinX) cellMinX = x;
+          if (y < cellMinY) cellMinY = y;
+          if (x > cellMaxX) cellMaxX = x;
+          if (y > cellMaxY) cellMaxY = y;
+        }
+      }
+
+      if (cellMaxX === -1 || cellMaxY === -1) continue;
+
+      foundOpaquePixel = true;
+      if (cellMinX < minLeft) minLeft = cellMinX;
+      if (cellMinY < minTop) minTop = cellMinY;
+      if (cellMaxX + 1 > maxRight) maxRight = cellMaxX + 1;
+      if (cellMaxY + 1 > maxBottom) maxBottom = cellMaxY + 1;
+    }
+  }
+
+  if (!foundOpaquePixel) return null;
+
+  return normalizeViewportCrop(
+    {
+      left: minLeft,
+      top: minTop,
+      width: maxRight - minLeft,
+      height: maxBottom - minTop,
+    },
+    atlas,
+  );
+};
+
 const CodexPet: React.FC<CodexPetProps> = ({
   spritesheetSrc = DEFAULT_SPRITESHEET_SRC,
   atlas = DEFAULT_ATLAS,
+  viewportCrop = DEFAULT_VIEWPORT_CROP,
   stateConfig = DEFAULT_STATE_CONFIG,
   sections = DEFAULT_SECTIONS,
   sectionReactions = DEFAULT_SECTION_REACTIONS,
@@ -84,6 +195,9 @@ const CodexPet: React.FC<CodexPetProps> = ({
   const [position, setPosition] = useState<Position | null>(null);
   const [isCompact, setIsCompact] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth < mobileBreakpoint
+  );
+  const [resolvedViewportCrop, setResolvedViewportCrop] = useState(() =>
+    normalizeViewportCrop(viewportCrop, atlas)
   );
 
   // Imperative state (no re-render)
@@ -138,11 +252,13 @@ const CodexPet: React.FC<CodexPetProps> = ({
 
   // --- Computed sprite dimensions ---
   const spriteWidth = isCompact ? mobileSpriteWidth : desktopSpriteWidth;
-  const spriteScale = spriteWidth / atlas.cellWidth;
-  const spriteHeight = Math.round(atlas.cellHeight * spriteScale);
+  const spriteScale = spriteWidth / resolvedViewportCrop.width;
+  const spriteHeight = Math.round(resolvedViewportCrop.height * spriteScale);
   const scaledCellWidth = Math.round(atlas.cellWidth * spriteScale);
   const scaledCellHeight = Math.round(atlas.cellHeight * spriteScale);
   const scaledAtlasWidth = Math.round(atlas.columns * atlas.cellWidth * spriteScale);
+  const scaledCropLeft = Math.round(resolvedViewportCrop.left * spriteScale);
+  const scaledCropTop = Math.round(resolvedViewportCrop.top * spriteScale);
 
   // --- Viewport helpers ---
   const getViewportBounds = useCallback(() => {
@@ -243,8 +359,8 @@ const CodexPet: React.FC<CodexPetProps> = ({
 
     // Sprite background position
     const cfg = stateConfig[s.petState];
-    const x = frameRef.current * scaledCellWidth;
-    const y = cfg.row * scaledCellHeight;
+    const x = frameRef.current * scaledCellWidth + scaledCropLeft;
+    const y = cfg.row * scaledCellHeight + scaledCropTop;
     sprite.style.backgroundPosition = `-${x}px -${y}px`;
 
     // Floating drag
@@ -306,7 +422,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
         shadow.style.filter = 'blur(12px)';
       }
     }
-  }, [stateConfig, sectionStyles, scaledCellWidth, scaledCellHeight]);
+  }, [stateConfig, sectionStyles, scaledCellWidth, scaledCellHeight, scaledCropLeft, scaledCropTop]);
 
   // --- Timer helpers ---
   const clearReturnTimer = useCallback(() => {
@@ -463,8 +579,8 @@ const CodexPet: React.FC<CodexPetProps> = ({
         frameRef.current = (frameRef.current + 1) % frames;
 
         if (spriteRef.current) {
-          const x = frameRef.current * scaledCellWidth;
-          const y = cfg.row * scaledCellHeight;
+          const x = frameRef.current * scaledCellWidth + scaledCropLeft;
+          const y = cfg.row * scaledCellHeight + scaledCropTop;
           spriteRef.current.style.backgroundPosition = `-${x}px -${y}px`;
         }
       }
@@ -482,12 +598,38 @@ const CodexPet: React.FC<CodexPetProps> = ({
         rafIdRef.current = null;
       }
     };
-  }, [stateConfig, scaledCellWidth, scaledCellHeight]);
+  }, [stateConfig, scaledCellWidth, scaledCellHeight, scaledCropLeft, scaledCropTop]);
 
   // --- Position sync ---
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const explicitCrop = viewportCrop ? normalizeViewportCrop(viewportCrop, atlas) : null;
+
+    if (explicitCrop) {
+      setResolvedViewportCrop(prev => (cropsEqual(prev, explicitCrop) ? prev : explicitCrop));
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const fullCellCrop = createFullCellCrop(atlas);
+    setResolvedViewportCrop(prev => (cropsEqual(prev, fullCellCrop) ? prev : fullCellCrop));
+
+    inferViewportCrop(spritesheetSrc, atlas, stateConfig)
+      .then((nextCrop) => {
+        if (cancelled || !nextCrop) return;
+        setResolvedViewportCrop(prev => (cropsEqual(prev, nextCrop) ? prev : nextCrop));
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [viewportCrop, spritesheetSrc, atlas, stateConfig]);
 
   // --- Resize ---
   useEffect(() => {
@@ -990,7 +1132,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
           height: `${spriteHeight}px`,
           backgroundImage: `url(${spritesheetSrc})`,
           backgroundSize: `${scaledAtlasWidth}px auto`,
-          backgroundPosition: '0px 0px',
+          backgroundPosition: `-${scaledCropLeft}px -${scaledCropTop}px`,
           imageRendering: 'auto',
         }}
       />

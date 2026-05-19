@@ -5,6 +5,7 @@ export type {
   PetHookName,
   StateConfig,
   AtlasConfig,
+  ViewportCrop,
   SectionDescriptor,
   SectionStyle,
   CooldownConfig,

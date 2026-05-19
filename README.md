@@ -64,6 +64,8 @@ function App() {
 
 > **Spritesheet required:** codex-pet renders from a spritesheet image (`.webp` / `.png`). Pass your own via `spritesheetSrc`. See [Spritesheet Format](#spritesheet-format) for the grid layout.
 
+> **Transparent padding:** codex-pet now auto-trims transparent padding inside atlas cells when the spritesheet can be sampled in the browser. For cross-origin assets without canvas access, pass `viewportCrop` explicitly.
+
 Pass `sections`, `sectionReactions`, and `sectionStyles` to enable section-aware behavior.
 
 ### Free Spritesheet Resources
@@ -90,6 +92,7 @@ import CodexPet, {
 <CodexPet
   spritesheetSrc="/my-pet.webp"
   atlas={{ columns: 8, cellWidth: 192, cellHeight: 208 }}
+  viewportCrop={{ left: 37, top: 5, width: 117, height: 198 }}
   desktopSpriteWidth={150}
   mobileSpriteWidth={116}
   sections={[{ id: 'hero' }, { id: 'about' }, { id: 'projects' }]}
@@ -113,6 +116,7 @@ import CodexPet, {
 |---|---|---|---|
 | `spritesheetSrc` | `string` | `'/pets/paris-muse.webp'` | Spritesheet image URL |
 | `atlas` | `AtlasConfig` | `{ columns:8, cellWidth:192, cellHeight:208 }` | Atlas grid layout |
+| `viewportCrop` | `ViewportCrop \| null` | `null` | Visible crop area inside each cell; omit to auto-trim transparent padding |
 | `stateConfig` | `Record<PetState, StateConfig>` | _(9 states)_ | Per-state animation config |
 | `sections` | `SectionDescriptor[]` | `[]` | DOM sections to detect by id |
 | `sectionReactions` | `Record<string, PetState>` | `{}` | State to play per section |
@@ -154,9 +158,10 @@ Configure via `stateConfig` and `atlas` props to match your own layout.
 
 ```
 ┌─────────────────────────────────────────────┐
-│  React re-renders (2 useState only)         │
+│  React re-renders (3 useState only)         │
 │  ├─ position (initial placement + resize)   │
-│  └─ isCompact (responsive breakpoint)       │
+│  ├─ isCompact (responsive breakpoint)       │
+│  └─ resolvedViewportCrop (one-time trim)    │
 ├─────────────────────────────────────────────┤
 │  Imperative DOM (commitDOM bypasses React)  │
 │  ├─ stateRef (6 consolidated useState→ref)  │
