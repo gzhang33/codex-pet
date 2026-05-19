@@ -926,19 +926,26 @@ const CodexPet: React.FC<CodexPetProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      className="fixed z-30 appearance-none border-0 bg-transparent p-0 select-none touch-none"
-      aria-label={ariaLabel}
-      data-pet-state="idle"
-      data-pet-hook="default"
-      data-pet-section=""
-      data-pet-scroll-reacting="false"
       style={{
+        position: 'fixed',
+        zIndex: 30,
+        appearance: 'none',
+        border: 0,
+        background: 'transparent',
+        padding: 0,
+        userSelect: 'none',
+        touchAction: 'none',
         left: `${position.x}px`,
         top: `${position.y}px`,
         cursor: 'grab',
         outline: 'none',
         contain: 'layout style paint',
       }}
+      aria-label={ariaLabel}
+      data-pet-state="idle"
+      data-pet-hook="default"
+      data-pet-section=""
+      data-pet-scroll-reacting="false"
     >
       <div
         ref={trailRef}

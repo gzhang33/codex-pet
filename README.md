@@ -56,13 +56,28 @@ function App() {
       <section id="about">About</section>
       <section id="projects">Projects</section>
       <section id="contact">Contact</section>
-      <CodexPet />
+      <CodexPet spritesheetSrc="/my-pet.webp" />
     </>
   );
 }
 ```
 
-Zero props works out of the box. Pass `sections`, `sectionReactions`, and `sectionStyles` to enable section-aware behavior.
+> **Spritesheet required:** codex-pet renders from a spritesheet image (`.webp` / `.png`). Pass your own via `spritesheetSrc`. See [Spritesheet Format](#spritesheet-format) for the grid layout.
+
+Pass `sections`, `sectionReactions`, and `sectionStyles` to enable section-aware behavior.
+
+### Free Spritesheet Resources
+
+| Resource | Style | License |
+|---|---|---|
+| [shuaagotchi crab (OpenGameArt)](https://opengameart.org/content/shuaagotchi-crab-virtual-pet) | Virtual pet | CC0 |
+| [megupet #009 - Fryo (OpenGameArt)](https://opengameart.org/content/megupet-009-fryo-public-domain9) | Monster pet | Public domain |
+| [megupet #012 - Piddles (OpenGameArt)](https://opengameart.org/content/megupet-012-piddles-public-domain) | Monster pet | Public domain |
+| [Pug Rework (OpenGameArt)](https://opengameart.org/content/pug-rework) | Animal | CC-BY 3.0 |
+| [Cat Fighter Sprite Sheet (OpenGameArt)](https://opengameart.org/content/cat-fighter-sprite-sheet) | Animal | CC-BY-SA 3.0 |
+| [Dino Character Sprites (itch.io)](https://arks.itch.io/dino-characters) | Cartoon | Free |
+| [itch.io — Free 2D Sprites](https://itch.io/game-assets/free/tag-sprites) | Various | Per-asset |
+| [OpenGameArt — Pet Sprites](https://opengameart.org/art-search-advanced?keys=pet+sprite&field_art_type_tid[]=9) | Various | Per-asset |
 
 ## Configuration
 
