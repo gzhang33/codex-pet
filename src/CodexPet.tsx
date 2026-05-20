@@ -1081,7 +1081,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
         top: `${position.y}px`,
         cursor: 'grab',
         outline: 'none',
-        contain: 'layout style paint',
+        contain: 'layout style',
       }}
       aria-label={ariaLabel}
       data-pet-state="idle"
