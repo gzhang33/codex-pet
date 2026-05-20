@@ -75,9 +75,9 @@ export const DEFAULT_SECTION_STYLE: Record<string, SectionStyle> = {};
 
 /** Neutral fallback style when no section style is configured. */
 export const NEUTRAL_SECTION_STYLE: SectionStyle = {
-  shadow: 'radial-gradient(ellipse, rgba(0, 0, 0, 0.18), transparent 68%)',
-  glow: 'drop-shadow(0 0 12px rgba(0, 0, 0, 0.12))',
-  trail: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18))',
+  shadow: 'radial-gradient(ellipse, rgba(0, 0, 0, 0.10), transparent 70%)',
+  glow: '',
+  trail: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.10))',
 };
 
 // --- Hook mapping ---

@@ -374,22 +374,8 @@ const CodexPet: React.FC<CodexPetProps> = ({
     // will-change during drag
     sprite.style.willChange = s.isDragging ? 'transform' : 'auto';
 
-    // Drop shadow
-    let dropShadow: string;
-    if (isCompactMode) {
-      dropShadow = isFloating
-        ? 'drop-shadow(0 24px 32px rgba(0, 0, 0, 0.32))'
-        : s.isDragging
-          ? 'drop-shadow(0 18px 26px rgba(0, 0, 0, 0.52))'
-          : 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.42))';
-    } else {
-      dropShadow = isFloating
-        ? 'drop-shadow(0 28px 42px rgba(0, 0, 0, 0.34))'
-        : s.isDragging
-          ? 'drop-shadow(0 18px 26px rgba(0, 0, 0, 0.52))'
-          : 'drop-shadow(0 14px 26px rgba(0, 0, 0, 0.5))';
-    }
-    sprite.style.filter = `${dropShadow} ${sectionStyle.glow}`;
+    // Section glow only — shadow handled by shadowEl below
+    sprite.style.filter = sectionStyle.glow;
 
     // Trail (only for running states)
     const isRunning = s.petState === 'running' || s.petState === 'running-left' || s.petState === 'running-right';
@@ -397,7 +383,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
       trail.style.display = isRunning ? '' : 'none';
       if (isRunning) {
         trail.style.background = sectionStyle.trail;
-        trail.style.opacity = s.isScrollReacting ? '0.8' : '0.5';
+        trail.style.opacity = s.isScrollReacting ? '0.5' : '0.3';
         const isLeft = s.petState === 'running-left';
         trail.style.left = isLeft ? '58%' : '';
         trail.style.right = isLeft ? '' : '58%';
@@ -409,17 +395,20 @@ const CodexPet: React.FC<CodexPetProps> = ({
     if (shadow) {
       shadow.style.background = sectionStyle.shadow;
       if (isFloating) {
-        shadow.style.transform = 'translateX(-50%) scale(0.75)';
-        shadow.style.opacity = '0.35';
-        shadow.style.filter = 'blur(24px)';
-      } else if (s.isDragging) {
-        shadow.style.transform = 'translateX(-50%) scale(1.1)';
-        shadow.style.opacity = '0.85';
+        shadow.style.transform = 'translateX(-50%) scale(0.6)';
+        shadow.style.opacity = '0.2';
         shadow.style.filter = 'blur(16px)';
+        shadow.style.marginTop = '4px';
+      } else if (s.isDragging) {
+        shadow.style.transform = 'translateX(-50%) scale(1)';
+        shadow.style.opacity = '0.5';
+        shadow.style.filter = 'blur(14px)';
+        shadow.style.marginTop = '2px';
       } else {
         shadow.style.transform = 'translateX(-50%) scale(1)';
-        shadow.style.opacity = '0.55';
-        shadow.style.filter = 'blur(12px)';
+        shadow.style.opacity = '0.4';
+        shadow.style.filter = 'blur(10px)';
+        shadow.style.marginTop = '-8px';
       }
     }
   }, [stateConfig, sectionStyles, scaledCellWidth, scaledCellHeight, scaledCropLeft, scaledCropTop]);
@@ -1082,6 +1071,7 @@ const CodexPet: React.FC<CodexPetProps> = ({
         cursor: 'grab',
         outline: 'none',
         contain: 'layout style',
+        overflow: 'visible',
       }}
       aria-label={ariaLabel}
       data-pet-state="idle"
@@ -1096,10 +1086,10 @@ const CodexPet: React.FC<CodexPetProps> = ({
           position: 'absolute',
           top: '42%',
           zIndex: -1,
-          width: '96px',
-          height: '36px',
+          width: '64px',
+          height: '24px',
           borderRadius: '9999px',
-          filter: 'blur(12px)',
+          filter: 'blur(8px)',
           pointerEvents: 'none',
           display: 'none',
           background: sectionStyle.trail,
@@ -1110,13 +1100,14 @@ const CodexPet: React.FC<CodexPetProps> = ({
         className="pet-shadow"
         style={{
           position: 'absolute',
-          left: '16%',
-          top: '78%',
+          left: '50%',
+          top: '100%',
+          marginTop: '-8px',
           zIndex: -1,
-          width: '68%',
-          height: '20px',
+          width: '60%',
+          height: '16px',
           borderRadius: '9999px',
-          filter: 'blur(12px)',
+          filter: 'blur(10px)',
           pointerEvents: 'none',
           transform: 'translateX(-50%)',
           background: sectionStyle.shadow,
